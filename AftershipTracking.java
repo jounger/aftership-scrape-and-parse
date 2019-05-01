@@ -29,7 +29,7 @@ public class AftershipTracking {
 
 class Dao {
 
-	public Tracking scrapeAndParseTracking(String url) throws IOException {
+	public static Tracking scrapeAndParseTracking(String url) throws IOException {
 		Document doc = Jsoup.connect(url).get();
 		// show tracking title
 		System.out.println(doc.title());
@@ -39,9 +39,17 @@ class Dao {
 		List<Checkpoint> checkpointsList = new ArrayList<>();
 
 		// find tracking information by ID attribute
+		String _statusT = "";
+		String _signedBy = "";
 		String _number = doc.select(Constants.TRACKING.DETECT_TRACKING_ID).html();
-		String _statusT = doc.select(Constants.TRACKING.DETECT_TRACKING_BLOCK_TAG).eq(0).select("p").html();
-		String _signedBy = doc.select(Constants.TRACKING.DETECT_TRACKING_BLOCK_TAG).eq(1).select("p").html();
+		Elements el = doc.select(Constants.TRACKING.DETECT_TRACKING_BLOCK_TAG);
+		Elements elDiv = doc.select(Constants.TRACKING.DETECT_TRACKING_BLOCK_TAG_DIV);		
+		if(!elDiv.select("div").isEmpty()) {
+			_statusT = elDiv.eq(0).select("p").html();
+			_signedBy = elDiv.eq(1).select("p").html();
+		} else {
+			_statusT = el.select("p").html();
+		}
 		String _courierT = doc.select(Constants.TRACKING.DETECT_TRACKING_COURIER).eq(0).select("h2").html();
 		tracking.setNumber(_number);
 		tracking.setStatus(_statusT);
@@ -102,7 +110,8 @@ class Constants {
 		 * class="col-sm-6"><p class="text-tight">Signed by: Signature not
 		 * required</p></div></div>
 		 */
-		public static final String DETECT_TRACKING_BLOCK_TAG = "#tag-container div";
+		public static final String DETECT_TRACKING_BLOCK_TAG = "#tag-container";
+		public static final String DETECT_TRACKING_BLOCK_TAG_DIV = "#tag-container div";
 		/*
 		 * <div class="media-right"><a href="https://www.aftership.com/courier/fedex"
 		 * class="link--black"><h2 class="h4 notranslate">FedEx</h2></a><a
